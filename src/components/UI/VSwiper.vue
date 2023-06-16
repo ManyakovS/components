@@ -1,14 +1,27 @@
 <template>
     <swiper :spaceBetween="30" :slidesPerView="5" :modules="modules" :centeredSlides="true"
-        :slideActiveClass="'swiper-slide-active'" class="w-full h-auto" @activeIndexChange="log">
+        :slideActiveClass="'swiper-slide-active'" class="w-full h-auto" @activeIndexChange="select">
         <!-- :cssMode="true" --> <!-- ТОЛЬКО ДЛЯ МОБИЛКИ -->
-        <swiper-slide v-for="el in swiper_elements" :key="el.id">{{ el }}</swiper-slide>
+        <swiper-slide v-for="el in swiper_elements" :key="el.id">
+
+            <div v-if="type == 'date'" class="flex flex-col">
+                <p>{{ getDayOfWeek(el) }}</p>
+                <p>{{ getDate(el) }}</p>
+            </div>
+
+            <div v-else-if="type == 'time'" class="flex">
+                {{ el }}
+            </div>
+
+        </swiper-slide>
     </swiper>
 </template>
 <script>
 import { Swiper, SwiperSlide } from 'swiper/vue';
-
+import moment from 'moment'
 import 'swiper/css';
+
+import { toRaw } from 'vue';
 
 export default {
     components: {
@@ -31,13 +44,24 @@ export default {
     },
     computed: {
         swiper_elements: function () {
-            return this.elements
+            if (this.type == 'date' && this.elements.every(e => (moment(e, 'YYYY-MM-DD', true).isValid())))
+                return this.elements
+            else if (this.type == 'time' && this.elements.every(e => (moment(e, 'HH:mm', true).isValid())))
+                return this.elements
+
+            return undefined
         },
     },
     methods: {
-        log(swiper) {
-            console.log(swiper)
+        select(el) {
+            this.$emit('select', this.swiper_elements[toRaw(el).activeIndex])
         },
+        getDate(el) {
+            return new Date(el).getDay()
+        },
+        getDayOfWeek(el) {
+            return new Date(el).toDateString().split(' ')[0]
+        }
     },
 
 };
@@ -51,19 +75,17 @@ export default {
 
 .swiper-slide {
     text-align: center;
-    font-size: 18px;
-    background: gray;
-
-    /* Center slide text vertically */
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 1.15rem;
+    font-weight: 500;
+
 }
 
 .swiper-slide-active {
-    background: rgba(62, 62, 152, 0.428);
-    height: 50px;
-
+    font-size: 1.55rem;
+    font-weight: 600;
 }
 
 .swiper-slide img {
