@@ -80,6 +80,7 @@ export default {
 
 <style lang="scss" scoped>
 .chair {
+    cursor: pointer;
     margin: 2px;
     display: block;
     mask-image: url("@/assets/Chair.svg");

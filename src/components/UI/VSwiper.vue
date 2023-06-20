@@ -1,6 +1,6 @@
 <template>
-    <swiper :spaceBetween="30" :slidesPerView="5" :modules="modules" :centeredSlides="true"
-        :slideActiveClass="'swiper-slide-active'" class="w-full h-auto" @activeIndexChange="select">
+    <swiper :spaceBetween="space_between" :slidesPerView="slides" :modules="modules" :centeredSlides="centeredSlides"
+        :slideActiveClass="slides_class" class="w-full h-auto" @activeIndexChange="select">
         <!-- :cssMode="true" --> <!-- ТОЛЬКО ДЛЯ МОБИЛКИ -->
         <swiper-slide v-for="el in swiper_elements" :key="el.id">
 
@@ -13,11 +13,16 @@
                 {{ el }}
             </div>
 
+            <template v-else-if="type == 'films'">
+                <v-film :link="el[0]" :title="el[1]"></v-film>
+            </template>
+
         </swiper-slide>
     </swiper>
 </template>
 <script>
 import { Swiper, SwiperSlide } from 'swiper/vue';
+import VFilm from '@/components/UI/VFilm.vue';
 import moment from 'moment'
 import 'swiper/css';
 
@@ -27,13 +32,18 @@ export default {
     components: {
         Swiper,
         SwiperSlide,
+        VFilm
+    },
+    data() {
+        return {
+
+        }
     },
     props: {
         type: {
             validator: function (value) {
-                return ['time', 'date'].includes(value)
+                return ['time', 'date', 'films'].includes(value)
             },
-            required: false,
         },
         elements: {
             validator: function (value) {
@@ -41,15 +51,36 @@ export default {
             },
             required: true,
         },
+        space_between: {
+            type: Number,
+            default: 30,
+        },
+        centeredSlides: {
+            type: Boolean,
+            default: true,
+        },
+        slides: {
+            type: Number,
+            default: 5,
+        }
     },
     computed: {
         swiper_elements: function () {
             if (this.type == 'date' && this.elements.every(e => (moment(e, 'YYYY-MM-DD', true).isValid())))
                 return this.elements
+
             else if (this.type == 'time' && this.elements.every(e => (moment(e, 'HH:mm', true).isValid())))
                 return this.elements
 
+            else if (this.type == 'films' && this.elements.every(e => this.isValidUrl(e[0])))
+                return this.elements
+
             return undefined
+        },
+        slides_class: function() {
+            let slide_class
+            this.type == 'date' || this.type == 'time' ? slide_class = 'swiper-slide-active' : slide_class = null
+            return slide_class
         },
     },
     methods: {
@@ -61,10 +92,22 @@ export default {
         },
         getDayOfWeek(el) {
             return new Date(el).toDateString().split(' ')[0]
-        }
-    },
+        },
+        isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                console.log()
+                return false;
+            }
 
-};
+        },
+
+    }
+}
+
+
 </script>
   
 <style lang="scss">
